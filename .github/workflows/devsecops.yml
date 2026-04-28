@@ -1,0 +1,62 @@
+name: DevSecOps Pipeline
+
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '18', cache: 'npm' }
+
+      - run: npm ci
+      - run: npm run lint || true
+      - run: npm test -- --ci
+
+      - name: GitLeaks (secrets)
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+
+      - name: npm audit
+        run: npm audit --audit-level=high || true
+
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: healthcare-app
+          path: '.'
+          format: 'SARIF'
+          args: '--failOnCVSS 7'
+
+      - name: SonarCloud SAST
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Build image
+        run: docker build -t healthcare-app:${{ github.sha }} .
+
+      - name: Trivy container scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: healthcare-app:${{ github.sha }}
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          ignore-unfixed: true
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: { sarif_file: trivy.sarif }

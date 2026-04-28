@@ -1,0 +1,64 @@
+services:
+  app:
+    build: .
+    image: healthcare-app:local
+    container_name: healthcare-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      FORCE_HTTPS: "false"
+      PORT: 3000
+      MONGO_URI: mongodb://mongo:27017/healthcare
+      JWT_SECRET: ${JWT_SECRET}
+      PHI_ENCRYPTION_KEY: ${PHI_ENCRYPTION_KEY}
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      - mongo
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/logs
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:6
+    container_name: healthcare-mongo
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: healthcare-prom
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: healthcare-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_DATE_FORMATS_USE_BROWSER_LOCALE: "true"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/healthcare-overview.json
+    volumes:
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  mongo-data:

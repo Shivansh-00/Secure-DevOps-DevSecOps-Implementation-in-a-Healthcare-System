@@ -1,0 +1,55 @@
+# Default-deny + explicit allow for app traffic. Zero-trust posture.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: healthcare
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-ingress
+  namespace: healthcare
+spec:
+  podSelector:
+    matchLabels:
+      app: healthcare
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-to-mongo
+  namespace: healthcare
+spec:
+  podSelector:
+    matchLabels:
+      app: healthcare
+  policyTypes: ["Egress"]
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: mongo
+      ports:
+        - protocol: TCP
+          port: 27017
+    - to: # DNS
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53

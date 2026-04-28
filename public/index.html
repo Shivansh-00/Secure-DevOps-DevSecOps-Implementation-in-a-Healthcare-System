@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+  <title>🔐 Healthcare DevSecOps Demo</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>🔐 Healthcare DevSecOps</h1>
+    <div id="userBar" class="user-bar hidden">
+      <span id="whoami"></span>
+      <button id="logoutBtn" class="btn btn-ghost">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Auth panel -->
+    <section id="authPanel" class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Login</button>
+        <button class="tab" data-tab="register">Register</button>
+      </div>
+
+      <form id="loginForm" class="tab-pane active">
+        <label>Email <input type="email" name="email" required autocomplete="username" /></label>
+        <label>Password <input type="password" name="password" required autocomplete="current-password" /></label>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </form>
+
+      <form id="registerForm" class="tab-pane">
+        <label>Full name <input type="text" name="name" maxlength="120" required /></label>
+        <label>Email <input type="email" name="email" required /></label>
+        <label>
+          Password
+          <input type="password" name="password" minlength="12" required
+                 autocomplete="new-password"
+                 title="Min 12 chars, upper+lower+digit+symbol" />
+          <small>Min 12 chars · upper · lower · digit · symbol</small>
+        </label>
+        <label>Role
+          <select name="role">
+            <option value="patient">Patient</option>
+            <option value="doctor">Doctor</option>
+          </select>
+        </label>
+        <button type="submit" class="btn btn-primary">Create account</button>
+      </form>
+    </section>
+
+    <!-- App panel -->
+    <section id="appPanel" class="hidden">
+      <div class="card" id="newRecordCard">
+        <h2>New patient record</h2>
+        <p class="muted">PHI fields below are encrypted at rest with AES‑256‑GCM.</p>
+        <form id="recordForm" class="grid">
+          <label>Owner user ID
+            <input name="ownerId" required pattern="[a-f0-9]{24}"
+                   title="MongoID (24 hex)" />
+          </label>
+          <label>Full name <input name="fullName" required maxlength="200" /></label>
+          <label>Date of birth <input name="dateOfBirth" placeholder="1990-01-15" /></label>
+          <label>SSN <input name="ssn" placeholder="123-45-6789" /></label>
+          <label class="span-2">Diagnosis <input name="diagnosis" maxlength="2000" /></label>
+          <label class="span-2">Notes <textarea name="notes" maxlength="5000" rows="2"></textarea></label>
+          <div class="span-2">
+            <button type="submit" class="btn btn-primary">Create record</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="row-between">
+          <h2>Patient records</h2>
+          <button id="refreshBtn" class="btn btn-ghost">↻ Refresh</button>
+        </div>
+        <div id="recordsList" class="records"></div>
+      </div>
+
+      <div class="card">
+        <h2>System</h2>
+        <div class="kpis">
+          <div class="kpi"><div class="kpi-label">Health</div><div class="kpi-val" id="healthKpi">—</div></div>
+          <div class="kpi"><div class="kpi-label">Uptime (s)</div><div class="kpi-val" id="uptimeKpi">—</div></div>
+          <div class="kpi"><div class="kpi-label">Your role</div><div class="kpi-val" id="roleKpi">—</div></div>
+        </div>
+        <p class="muted">
+          Prometheus: <a href="http://localhost:9090" target="_blank" rel="noopener">:9090</a> ·
+          Grafana: <a href="http://localhost:3001" target="_blank" rel="noopener">:3001</a> ·
+          Metrics: <a href="/metrics" target="_blank" rel="noopener">/metrics</a>
+        </p>
+      </div>
+    </section>
+
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <footer>
+    <small>Demo only · Audit-logged · OWASP-hardened · HIPAA-aligned</small>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

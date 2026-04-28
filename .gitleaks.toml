@@ -1,0 +1,24 @@
+# GitLeaks configuration — secret detection
+title = "Healthcare DevSecOps - GitLeaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlisted paths"
+paths = [
+  '''(.*?)\.env\.example''',
+  '''README\.md''',
+]
+
+[[rules]]
+id = "generic-jwt-secret"
+description = "Hardcoded JWT secret"
+regex = '''(?i)jwt[_-]?secret['"\s:=]+['"][A-Za-z0-9+/=_-]{16,}['"]'''
+tags = ["secret", "jwt"]
+
+[[rules]]
+id = "phi-encryption-key"
+description = "Hardcoded PHI encryption key"
+regex = '''(?i)PHI_ENCRYPTION_KEY['"\s:=]+['"][A-Za-z0-9+/=]{32,}['"]'''
+tags = ["secret", "phi"]

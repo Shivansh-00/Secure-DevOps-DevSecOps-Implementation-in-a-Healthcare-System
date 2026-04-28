@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+logs
+coverage
+tests
+*.md
+Jenkinsfile
+k8s
+monitoring
+.dockerignore

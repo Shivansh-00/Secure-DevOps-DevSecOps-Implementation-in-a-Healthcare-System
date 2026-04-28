@@ -1,0 +1,93 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "App Up",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "up{job=\"healthcare-app\"}", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "DOWN", "color": "red" } }, "type": "value" },
+            { "options": { "1": { "text": "UP", "color": "green" } }, "type": "value" }
+          ],
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Process Uptime (s)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "time() - process_start_time_seconds{job=\"healthcare-app\"}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "type": "stat",
+      "title": "Resident Memory (MB)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "process_resident_memory_bytes{job=\"healthcare-app\"} / 1024 / 1024", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "decmbytes" } }
+    },
+    {
+      "type": "stat",
+      "title": "Event Loop Lag p99 (ms)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "nodejs_eventloop_lag_p99_seconds{job=\"healthcare-app\"} * 1000", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "ms" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Requests / sec by status",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 4 },
+      "targets": [{ "expr": "sum by (status) (rate(http_request_duration_seconds_count{job=\"healthcare-app\"}[1m]))", "legendFormat": "{{status}}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP p95 Latency (s) by route",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 4 },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, route) (rate(http_request_duration_seconds_bucket{job=\"healthcare-app\"}[5m])))", "legendFormat": "{{route}}", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU User Seconds (rate)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 13 },
+      "targets": [{ "expr": "rate(process_cpu_user_seconds_total{job=\"healthcare-app\"}[1m])", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Heap Used (MB)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 13 },
+      "targets": [{ "expr": "nodejs_heap_size_used_bytes{job=\"healthcare-app\"} / 1024 / 1024", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "decmbytes" } }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["healthcare", "devsecops"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Healthcare App Overview",
+  "uid": "healthcare-overview",
+  "version": 1,
+  "weekStart": ""
+}
